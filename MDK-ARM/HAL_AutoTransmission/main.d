@@ -31,4 +31,5 @@ hal_autotransmission\main.o: ../Drivers/STM32F0xx_HAL_Driver/Inc/stm32f0xx_hal_u
 hal_autotransmission\main.o: ../Inc/dma.h
 hal_autotransmission\main.o: ../Inc/usart.h
 hal_autotransmission\main.o: ../Inc/gpio.h
+hal_autotransmission\main.o: ../Inc/hx711.h
 hal_autotransmission\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

@@ -26,7 +26,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "hx711.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +46,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-#include "string.h"
+
 /* USER CODE BEGIN PV */
 
 #ifdef __GNUC__
@@ -66,7 +67,7 @@ uint8_t rx_complete = 0;
 uint8_t cmd_len = 0;
 uint8_t cmd[MAX_CLI_STRING];
 int rx_index = 0;
-
+float Weight = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -116,20 +117,18 @@ int main(void)
 	__HAL_UART_FLUSH_DRREGISTER(&huart1);
 	HAL_UART_Receive_DMA(&huart1, &rx_buffer, 1);
   /* USER CODE END 2 */
-
+	Get_Maopi();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
-		if (rx_complete) {
-			rx_complete = 0;
-			HAL_UART_Transmit(&huart1, cmd, cmd_len, 1000);
-			HAL_UART_Transmit(&huart1, (uint8_t *)"\r\n", 2, 1000);
-		}
+
     /* USER CODE BEGIN 3 */
-		//printf("kkk\n");
-		//HAL_Delay(1000);
+		Weight = Get_Weight();
+		Weight = (float)Weight/1000.0;
+		printf("%0.3f kg\n",Weight);
+		HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }

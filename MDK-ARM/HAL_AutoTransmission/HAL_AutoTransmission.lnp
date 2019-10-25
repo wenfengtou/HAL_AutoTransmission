@@ -1,5 +1,6 @@
 --cpu Cortex-M0
 "hal_autotransmission\startup_stm32f030x8.o"
+"hal_autotransmission\hx711.o"
 "hal_autotransmission\main.o"
 "hal_autotransmission\gpio.o"
 "hal_autotransmission\dma.o"
