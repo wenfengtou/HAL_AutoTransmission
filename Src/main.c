@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -44,8 +45,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
+#include "string.h"
 /* USER CODE BEGIN PV */
+
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #else
@@ -53,11 +55,18 @@
 #endif
 PUTCHAR_PROTOTYPE
 {
-    HAL_UART_Transmit(&huart1 , (uint8_t *)&ch, 1 , 0xffff);
+    HAL_UART_Transmit(&huart1 , (uint8_t *)&ch, 1, 0xFFFF);
     return ch;
 }
 
-uint8_t rx_buf[20];
+#define MAX_CLI_STRING 400
+uint8_t rx_buffer = '\000';
+uint8_t rx_string[MAX_CLI_STRING];
+uint8_t rx_complete = 0;
+uint8_t cmd_len = 0;
+uint8_t cmd[MAX_CLI_STRING];
+int rx_index = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,11 +109,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-	HAL_UART_Receive_IT((UART_HandleTypeDef *)&huart1, 
-											(uint8_t *)rx_buf, 
-											(uint16_t) 20);
+	HAL_Delay(1000);
+	__HAL_UART_FLUSH_DRREGISTER(&huart1);
+	HAL_UART_Receive_DMA(&huart1, &rx_buffer, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -112,9 +122,13 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+		if (rx_complete) {
+			rx_complete = 0;
+			HAL_UART_Transmit(&huart1, cmd, cmd_len, 1000);
+			HAL_UART_Transmit(&huart1, (uint8_t *)"\r\n", 2, 1000);
+		}
     /* USER CODE BEGIN 3 */
-		//printf("hehehe\n");
+		//printf("kkk\n");
 		//HAL_Delay(1000);
   }
   /* USER CODE END 3 */
@@ -161,14 +175,32 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == USART1) {
-		printf("receive success %s \n", rx_buf);
-		HAL_UART_Receive_IT((UART_HandleTypeDef *)&huart1, 
-												(uint8_t *)rx_buf, 
-												(uint16_t) 20);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	__HAL_UART_FLUSH_DRREGISTER(&huart1);
+	
+	if (rx_buffer == '#') {
+		for(int i = 0; i < rx_index; i++){
+			cmd[i] = rx_string[i];
+		}
+		cmd_len = rx_index;
+		rx_complete = 1;
+		
+		rx_index = 0;
+		for(int i = 0; i < MAX_CLI_STRING; i++) rx_string[i] = 0;
+	} else {
+		if (rx_index >= MAX_CLI_STRING) {
+				rx_index = 0;
+				for(int i = 0; i < MAX_CLI_STRING; i++) rx_string[i] = 0;
+		}
+		rx_string[rx_index] = rx_buffer;
+		rx_index++;
 	}
+	
+}
+
+void send_message(UART_HandleTypeDef *huart, uint8_t *data) {
+		int data_len = strlen((char *)data);
+		HAL_UART_Transmit(huart, data, data_len, 1000);	
 }
 /* USER CODE END 4 */
 

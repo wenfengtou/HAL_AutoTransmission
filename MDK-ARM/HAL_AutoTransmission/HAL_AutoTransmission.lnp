@@ -2,6 +2,7 @@
 "hal_autotransmission\startup_stm32f030x8.o"
 "hal_autotransmission\main.o"
 "hal_autotransmission\gpio.o"
+"hal_autotransmission\dma.o"
 "hal_autotransmission\usart.o"
 "hal_autotransmission\stm32f0xx_it.o"
 "hal_autotransmission\stm32f0xx_hal_msp.o"
