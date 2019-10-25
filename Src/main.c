@@ -22,7 +22,6 @@
 #include "main.h"
 #include "usart.h"
 #include "gpio.h"
-#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -47,7 +46,18 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif
+PUTCHAR_PROTOTYPE
+{
+    HAL_UART_Transmit(&huart1 , (uint8_t *)&ch, 1 , 0xffff);
+    return ch;
+}
 
+uint8_t rx_buf[20];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,7 +102,9 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+	HAL_UART_Receive_IT((UART_HandleTypeDef *)&huart1, 
+											(uint8_t *)rx_buf, 
+											(uint16_t) 20);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -100,12 +112,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-		HAL_UART_Transmit((UART_HandleTypeDef *)&huart1, 
-		(uint8_t *)"led on on", 
-		(uint16_t) strlen("led on on"), 
-		(uint32_t) 999);
-		HAL_Delay(1000);
+
     /* USER CODE BEGIN 3 */
+		//printf("hehehe\n");
+		//HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -151,7 +161,15 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == USART1) {
+		printf("receive success %s \n", rx_buf);
+		HAL_UART_Receive_IT((UART_HandleTypeDef *)&huart1, 
+												(uint8_t *)rx_buf, 
+												(uint16_t) 20);
+	}
+}
 /* USER CODE END 4 */
 
 /**
